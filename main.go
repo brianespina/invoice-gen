@@ -2,22 +2,26 @@ package main
 
 import (
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
 	"os"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
+	//"time"
 )
 
 type model struct {
 	choices  []string
 	cursor   int
 	selected map[int]struct{}
+	state    string
+	form     *huh.Form
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return m.form.Init()
 }
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -37,35 +41,72 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.selected[m.cursor] = struct{}{}
 			}
+		case "ctrl+n":
+			m.state = "client_add"
+		case "esc":
+			m.state = "normal"
 		}
 
 	}
 	return m, nil
 }
 func (m model) View() string {
-	s := "What should we but ay the market? \n\n"
+	s := ""
+	switch m.state {
+	case "normal":
+		for i, choice := range m.choices {
+			cursor := " "
+			if m.cursor == i {
+				cursor = ">"
+			}
 
-	for i, choice := range m.choices {
-		cursor := " "
-		if m.cursor == i {
-			cursor = ">"
+			checked := " "
+			if _, ok := m.selected[i]; ok {
+				checked = "x"
+			}
+			s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
 		}
-
-		checked := " "
-		if _, ok := m.selected[i]; ok {
-			checked = "x"
-		}
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+	case "client_add":
+		s = m.form.View() + "\nPress esc to go back.\n"
 	}
 
 	s += "\nPress q to quit.\n"
 	return s
 }
 func initialModel() model {
-	return model{
+	m := model{
 		choices:  []string{"Buy Gata", "Buy Pork", "Buy Sili"},
 		selected: make(map[int]struct{}),
+		state:    "normal",
 	}
+	m.form = huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Key("class").
+				Options(huh.NewOptions("Warrior", "Mage", "Rogue")...).
+				Title("Choose your class").
+				Description("This will determine your department"),
+
+			huh.NewSelect[string]().
+				Key("level").
+				Options(huh.NewOptions("1", "20", "9999")...).
+				Title("Choose your level").
+				Description("This will determine your benefits package"),
+
+			huh.NewConfirm().
+				Key("done").
+				Title("All done?").
+				Validate(func(v bool) error {
+					if !v {
+						return fmt.Errorf("Welp, finish up then")
+					}
+					return nil
+				}).
+				Affirmative("Yep").
+				Negative("Wait, no"),
+		),
+	)
+	return m
 }
 func main() {
 	p := tea.NewProgram(initialModel())
