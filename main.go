@@ -5,7 +5,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/huh"
+	"invoice-gen/client"
 	//"time"
 )
 
@@ -14,11 +14,10 @@ type model struct {
 	cursor   int
 	selected map[int]struct{}
 	state    string
-	form     *huh.Form
 }
 
 func (m model) Init() tea.Cmd {
-	return m.form.Init()
+	return nil
 }
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -45,6 +44,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.state = "client_add"
 		case "esc":
 			m.state = "normal"
+			//default:
+			//	log.Println(msg.String())
 		}
 
 	}
@@ -67,7 +68,7 @@ func (m model) View() string {
 			s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
 		}
 	case "client_add":
-		s = m.form.View() + "\nPress esc to go back.\n"
+
 	}
 
 	s += "\nPress q to quit.\n"
@@ -79,36 +80,10 @@ func initialModel() model {
 		selected: make(map[int]struct{}),
 		state:    "normal",
 	}
-	m.form = huh.NewForm(
-		huh.NewGroup(
-			huh.NewSelect[string]().
-				Key("class").
-				Options(huh.NewOptions("Warrior", "Mage", "Rogue")...).
-				Title("Choose your class").
-				Description("This will determine your department"),
-
-			huh.NewSelect[string]().
-				Key("level").
-				Options(huh.NewOptions("1", "20", "9999")...).
-				Title("Choose your level").
-				Description("This will determine your benefits package"),
-
-			huh.NewConfirm().
-				Key("done").
-				Title("All done?").
-				Validate(func(v bool) error {
-					if !v {
-						return fmt.Errorf("Welp, finish up then")
-					}
-					return nil
-				}).
-				Affirmative("Yep").
-				Negative("Wait, no"),
-		),
-	)
 	return m
 }
 func main() {
+	//p := tea.NewProgram(client.NewCForm())
 	p := tea.NewProgram(initialModel())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error has occurd: %v", err)
