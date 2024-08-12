@@ -7,84 +7,35 @@ import (
 	"invoice-gen/client"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 	//"time"
 )
 
 type model struct {
-	choices  []string
-	cursor   int
-	selected map[int]struct{}
-	state    string
-	form     client.ClientForm
+	clients []client.Client
+	form    client.Form
 }
 
 func (m model) Init() tea.Cmd {
 	return m.form.Init()
 }
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
-			}
-		case "enter", " ":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				m.selected[m.cursor] = struct{}{}
-			}
-		case "ctrl+n":
-			m.state = "client_add"
-		case "esc":
-			m.state = "normal"
-			//default:
-			//	log.Println(msg.String())
-		}
-
+	var cmd tea.Cmd
+	m.form, cmd = m.form.Update(msg)
+	if m.form.Form.State == huh.StateCompleted {
+		m.clients = append(m.clients, client.Client{Name: m.form.FName})
+		m.form = client.NewCForm()
 	}
-	if m.state == "client_add" {
-		return m.form.Update(msg)
-	}
-	return m, nil
+	return m, cmd
 }
 func (m model) View() string {
-	s := ""
-	switch m.state {
-	case "normal":
-		for i, choice := range m.choices {
-			cursor := " "
-			if m.cursor == i {
-				cursor = ">"
-			}
-
-			checked := " "
-			if _, ok := m.selected[i]; ok {
-				checked = "x"
-			}
-			s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-		}
-	case "client_add":
-		s += m.form.View()
+	if m.form.Form.State == huh.StateCompleted {
 	}
-
-	s += "\nPress q to quit.\n"
-	return s
+	return m.form.View()
 }
 func initialModel() model {
 	m := model{
-		choices:  []string{"Buy Gata", "Buy Pork", "Buy Sili"},
-		selected: make(map[int]struct{}),
-		state:    "normal",
-		form:     client.NewCForm(),
+		form: client.NewCForm(),
 	}
 	return m
 }
