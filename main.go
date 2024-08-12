@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"invoice-gen/client"
+
+	tea "github.com/charmbracelet/bubbletea"
 	//"time"
 )
 
@@ -14,10 +15,11 @@ type model struct {
 	cursor   int
 	selected map[int]struct{}
 	state    string
+	form     client.ClientForm
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return m.form.Init()
 }
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -49,6 +51,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	}
+	if m.state == "client_add" {
+		return m.form.Update(msg)
+	}
 	return m, nil
 }
 func (m model) View() string {
@@ -68,7 +73,7 @@ func (m model) View() string {
 			s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
 		}
 	case "client_add":
-
+		s += m.form.View()
 	}
 
 	s += "\nPress q to quit.\n"
@@ -79,6 +84,7 @@ func initialModel() model {
 		choices:  []string{"Buy Gata", "Buy Pork", "Buy Sili"},
 		selected: make(map[int]struct{}),
 		state:    "normal",
+		form:     client.NewCForm(),
 	}
 	return m
 }
