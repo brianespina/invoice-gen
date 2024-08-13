@@ -7,8 +7,6 @@ import (
 	"invoice-gen/client"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/huh"
-	//"time"
 )
 
 type model struct {
@@ -22,19 +20,35 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.form, cmd = m.form.Update(msg)
-	if m.form.Form.State == huh.StateCompleted {
-		m.clients = append(m.clients, client.Client{Name: m.form.FName})
-		m.form = client.NewCForm()
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+		case "enter":
+			m.clients = append(m.clients, client.Client{Name: m.form.FName})
+			m.form = client.NewCForm()
+			return m, cmd
+		}
 	}
+
 	return m, cmd
 }
-func (m model) View() string {
-	if m.form.Form.State == huh.StateCompleted {
+func (m model) View() (s string) {
+	for _, client := range m.clients {
+		s += client.Name + "\n"
 	}
-	return m.form.View()
+	s += m.form.View()
+	return
 }
 func initialModel() model {
 	m := model{
+		clients: []client.Client{
+			{
+				Name: "Brian Espina",
+			},
+		},
 		form: client.NewCForm(),
 	}
 	return m

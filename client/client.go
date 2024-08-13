@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 )
@@ -37,9 +36,5 @@ func (f Form) Update(msg tea.Msg) (Form, tea.Cmd) {
 }
 
 func (f Form) View() string {
-	if f.Form.State == huh.StateCompleted {
-		val := f.Form.GetString("val")
-		return fmt.Sprintf("you entered %s", val)
-	}
 	return f.Form.View()
 }
