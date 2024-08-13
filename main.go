@@ -7,11 +7,13 @@ import (
 	"invoice-gen/client"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"log"
 )
 
 type model struct {
 	clients []client.Client
 	form    client.Form
+	mode    string
 }
 
 func (m model) Init() tea.Cmd {
@@ -19,27 +21,39 @@ func (m model) Init() tea.Cmd {
 }
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	m.form, cmd = m.form.Update(msg)
-
+	if m.mode == "add" {
+		m.form, cmd = m.form.Update(msg)
+		log.Println("press")
+		if m.form.IsComplete() {
+			m.clients = append(m.clients, client.Client{Name: m.form.FName})
+			m.mode = "normal"
+		}
+		return m, cmd
+	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "enter":
-			m.clients = append(m.clients, client.Client{Name: m.form.FName})
-			m.form = client.NewCForm()
+		case "ctrl+n":
+			m.mode = "add"
+			//m.clients = append(m.clients, client.Client{Name: m.form.FName})
 			return m, cmd
+		case "esc":
+			m.mode = "normal"
 		}
 	}
-
 	return m, cmd
 }
 func (m model) View() (s string) {
-	for _, client := range m.clients {
-		s += client.Name + "\n"
+	switch m.mode {
+	case "add":
+		s = m.form.View()
+	case "normal":
+		for _, client := range m.clients {
+			s += client.Name + "\n"
+		}
 	}
-	s += m.form.View()
 	return
 }
 func initialModel() model {
@@ -50,6 +64,7 @@ func initialModel() model {
 			},
 		},
 		form: client.NewCForm(),
+		mode: "normal",
 	}
 	return m
 }

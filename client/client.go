@@ -35,6 +35,12 @@ func (f Form) Update(msg tea.Msg) (Form, tea.Cmd) {
 	return f, cmd
 }
 
+func (f *Form) IsComplete() bool {
+	if f.Form.State == huh.StateCompleted {
+		return true
+	}
+	return false
+}
 func (f Form) View() string {
 	return f.Form.View()
 }
