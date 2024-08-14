@@ -16,7 +16,7 @@ func NewCForm() ClientForm {
 	return ClientForm{
 		Form: huh.NewForm(
 			huh.NewGroup(
-				huh.NewInput().Key("val").Title("Client Name").Placeholder("John Doe"),
+				huh.NewInput().Key("name").Title("Client Name").Placeholder("John Doe"),
 			),
 		),
 	}
@@ -27,12 +27,17 @@ func (f ClientForm) Init() tea.Cmd {
 }
 
 func (f ClientForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	form, _ := f.Form.Update(msg)
+
+	var cmds []tea.Cmd
+	form, cmd := f.Form.Update(msg)
 	if ff, ok := form.(*huh.Form); ok {
 		f.Form = ff
-		return f, nil
+		cmds = append(cmds, cmd)
 	}
-	return f, nil
+	if f.Form.State == huh.StateCompleted {
+		cmds = append(cmds, tea.Quit)
+	}
+	return f, tea.Batch(cmds...)
 }
 
 func (f ClientForm) View() string {

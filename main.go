@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/huh"
 	"invoice-gen/client"
 	"os"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 )
 
 type model struct {
@@ -26,6 +27,7 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.form.Form.State == huh.StateCompleted {
 		m.mode = "normal"
+		m.clients = append(m.clients, client.Client{Name: m.form.Form.GetString("name")})
 		m.form = client.NewCForm()
 		return m, nil
 	}
@@ -36,9 +38,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "ctrl+n":
 			m.mode = "add"
-			return m, nil
-		case "esc":
-			m.mode = "normal"
 			return m, nil
 		}
 	}
