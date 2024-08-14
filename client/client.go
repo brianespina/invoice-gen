@@ -8,13 +8,12 @@ import (
 type Client struct {
 	Name string
 }
-type Form struct {
-	FName string
-	Form  *huh.Form
+type ClientForm struct {
+	Form *huh.Form
 }
 
-func NewCForm() Form {
-	return Form{
+func NewCForm() ClientForm {
+	return ClientForm{
 		Form: huh.NewForm(
 			huh.NewGroup(
 				huh.NewInput().Key("val").Title("Client Name").Placeholder("John Doe"),
@@ -23,24 +22,19 @@ func NewCForm() Form {
 	}
 }
 
-func (f Form) Init() tea.Cmd {
+func (f ClientForm) Init() tea.Cmd {
 	return f.Form.Init()
 }
 
-func (f Form) Update(msg tea.Msg) (Form, tea.Cmd) {
-	form, cmd := f.Form.Update(msg)
+func (f ClientForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	form, _ := f.Form.Update(msg)
 	if ff, ok := form.(*huh.Form); ok {
 		f.Form = ff
+		return f, nil
 	}
-	return f, cmd
+	return f, nil
 }
 
-func (f *Form) IsComplete() bool {
-	if f.Form.State == huh.StateCompleted {
-		return true
-	}
-	return false
-}
-func (f Form) View() string {
+func (f ClientForm) View() string {
 	return f.Form.View()
 }

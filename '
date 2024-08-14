@@ -2,62 +2,52 @@ package main
 
 import (
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/huh"
 	"invoice-gen/client"
+	"log"
 	"os"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type model struct {
-	clients       []client.Client
-	form          client.ClientForm
-	mode          string
-	clientName    string
-	clientContact string
+	clients []client.Client
+	form    client.Form
+	mode    string
 }
 
 func (m model) Init() tea.Cmd {
-	if m.mode == "add" {
-		return m.form.Form.Init()
-	}
-	return nil
+	return m.form.Init()
 }
-
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.form.Form.State == huh.StateCompleted {
-		m.mode = "normal"
-		m.form = client.NewCForm()
-		return m, nil
-	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c":
-			return m, tea.Quit
+		case "ctrl+c", "q":
 		case "ctrl+n":
 			m.mode = "add"
-			return m, nil
 		case "esc":
 			m.mode = "normal"
-			return m, nil
 		}
 	}
-	return m, nil
+	var cmd tea.Cmd
+	if m.mode == "add" {
+		m.form, cmd = m.form.Update(msg)
+		if m.form.IsComplete() {
+			log.Println("add client")
+		}
+	}
+	return m, cmd
 }
-
-func (m model) View() string {
+func (m model) View() (s string) {
 	switch m.mode {
 	case "add":
-		m.form.Form.Run()
-		return ""
+		s = m.form.View()
 	case "normal":
-		s := ""
 		for _, client := range m.clients {
 			s += client.Name + "\n"
 		}
-		return s
 	}
-	return "something"
+	return
 }
 func initialModel() model {
 	m := model{
@@ -66,8 +56,8 @@ func initialModel() model {
 				Name: "Brian Espina",
 			},
 		},
-		mode: "normal",
 		form: client.NewCForm(),
+		mode: "normal",
 	}
 	return m
 }
