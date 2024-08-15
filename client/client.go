@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"invoice-gen/timelog"
 )
 
 type view int
@@ -47,7 +48,9 @@ func (l ClientList) View() string {
 		client := l.list[l.cursor]
 		s += fmt.Sprintf("%s\n", client.name)
 		s += fmt.Sprintf("%s\n", client.email)
-		s += fmt.Sprintf("%.2f\n", client.rate)
+		s += fmt.Sprintf("%.1f\n", client.rate)
+		t := timelog.InitTimeList()
+		s += t.View()
 		return s
 	case normal:
 		fallthrough
@@ -82,9 +85,9 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 			} else {
 				l.cursor--
 			}
-		case "d":
+		case "enter":
 			l.view = details
-		case "l":
+		case "esc":
 			l.view = normal
 		}
 	}

@@ -54,7 +54,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.mode = timeSheetView
 		case "ctrl+a":
 			m.mode = clientAddView
-		case "esc":
+		case "ctrl+v":
 			m.mode = clientView
 		}
 	}
