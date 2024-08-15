@@ -50,6 +50,7 @@ func (l ClientList) View() string {
 		s += fmt.Sprintf("%s\n", client.email)
 		s += fmt.Sprintf("%.1f\n", client.rate)
 		t := timelog.InitTimeList()
+		timelog.FilterLogs(&t, l.cursor)
 		s += t.View()
 		return s
 	case normal:

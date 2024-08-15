@@ -20,11 +20,20 @@ type TimeList struct {
 func InitTimeList() TimeList {
 	return TimeList{
 		list: []Timelog{
-			{Name: "MNY Site Build", Log: 16.5},
-			{Name: "Nova Website Updates", Log: .5},
-			{Name: "Product Page Updates", Log: 4},
+			{Name: "MNY Site Build", Log: 16.5, Client: 0},
+			{Name: "Nova Website Updates", Log: .5, Client: 1},
+			{Name: "Product Page Updates", Log: 4, Client: 2},
 		},
 	}
+}
+func FilterLogs(list *TimeList, clientId int) {
+	var filtered []Timelog
+	for _, log := range list.list {
+		if clientId == log.Client {
+			filtered = append(filtered, log)
+		}
+	}
+	list.list = filtered
 }
 func (t TimeList) Init() tea.Cmd {
 	return nil
