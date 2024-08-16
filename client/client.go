@@ -48,7 +48,7 @@ func (l ClientList) View() string {
 		client := l.list[l.cursor]
 		s += fmt.Sprintf("%s\n", client.name)
 		s += fmt.Sprintf("%s\n", client.email)
-		s += fmt.Sprintf("%.1f\n", client.rate)
+		s += fmt.Sprintf("%.1f\n\n", client.rate)
 		t := timelog.InitTimeList()
 		timelog.FilterLogs(&t, l.cursor)
 		s += t.View()
@@ -58,11 +58,11 @@ func (l ClientList) View() string {
 	default:
 		var s string
 		for i, client := range l.list {
-			cursor := ""
+			cursor := " "
 			if l.cursor == i {
-				cursor = ">"
+				cursor = "|"
 			}
-			s += fmt.Sprintf("%s %d %s\n", cursor, i, client.name)
+			s += fmt.Sprintf("%s %s\n", cursor, client.name)
 		}
 		return s
 	}

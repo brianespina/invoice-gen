@@ -1,11 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
+	_ "github.com/mattn/go-sqlite3"
 	"invoice-gen/client"
 	"os"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 type mode int
@@ -80,6 +81,12 @@ func New() *model {
 	return &model{}
 }
 func main() {
+	db, err := sql.Open("sqlite3", "./store.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	p := tea.NewProgram(New())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error has occurd: %v", err)
