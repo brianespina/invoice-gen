@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 
+	"database/sql"
 	tea "github.com/charmbracelet/bubbletea"
 	"invoice-gen/timelog"
 )
@@ -23,8 +24,12 @@ type ClientList struct {
 	list   []Client
 	cursor int
 	view   view
+	db     *sql.DB
 }
 
+func (l *ClientList) Db(db *sql.DB) {
+	l.db = db
+}
 func (l *ClientList) Populate() {
 	l.list = []Client{
 		{name: "White Sheep Digital", rate: 20, email: "sample@email.com"},
@@ -37,6 +42,7 @@ func New() ClientList {
 		cursor: 0,
 	}
 }
+
 func (l ClientList) Init() tea.Cmd {
 	return nil
 }

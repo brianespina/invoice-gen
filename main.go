@@ -17,36 +17,16 @@ const (
 	clientAddView
 )
 
-type Client struct {
-	name, rate string
-}
-
-func (c Client) FilterValue() string {
-	return c.name
-}
-func (c Client) Title() string {
-	return c.name
-}
-func (c Client) Description() string {
-	return c.rate
-}
-
 type model struct {
 	list client.ClientList
 	mode mode
 }
 
-func (m *model) InitList() {
-	m.list = client.New()
-	m.list.Populate()
-}
 func (m model) Init() tea.Cmd {
 	return nil
 }
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.InitList()
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
@@ -77,8 +57,15 @@ func (m model) View() string {
 	}
 	return m.list.View()
 }
-func New() *model {
-	return &model{}
+func New(db *sql.DB) *model {
+	m := &model{
+		list: client.New(),
+	}
+	//populate client list --dev
+	m.list.Populate()
+	//pass database
+	m.list.Db(db)
+	return m
 }
 func main() {
 	db, err := sql.Open("sqlite3", "./store.db")
@@ -87,7 +74,7 @@ func main() {
 	}
 	defer db.Close()
 
-	p := tea.NewProgram(New())
+	p := tea.NewProgram(New(db))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error has occurd: %v", err)
 		os.Exit(1)
