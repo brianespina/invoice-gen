@@ -59,12 +59,8 @@ func (m model) View() string {
 }
 func New(db *sql.DB) *model {
 	m := &model{
-		list: client.New(),
+		list: client.New(db),
 	}
-	//populate client list --dev
-	m.list.Populate()
-	//pass database
-	m.list.Db(db)
 	return m
 }
 func main() {
@@ -75,6 +71,7 @@ func main() {
 	defer db.Close()
 
 	p := tea.NewProgram(New(db))
+
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error has occurd: %v", err)
 		os.Exit(1)

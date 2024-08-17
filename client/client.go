@@ -1,9 +1,8 @@
 package client
 
 import (
-	"fmt"
-
 	"database/sql"
+	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"invoice-gen/timelog"
 )
@@ -19,7 +18,9 @@ type Client struct {
 	name  string
 	email string
 	rate  float32
+	id    int
 }
+
 type ClientList struct {
 	list   []Client
 	cursor int
@@ -30,17 +31,29 @@ type ClientList struct {
 func (l *ClientList) Db(db *sql.DB) {
 	l.db = db
 }
-func (l *ClientList) Populate() {
-	l.list = []Client{
-		{name: "White Sheep Digital", rate: 20, email: "sample@email.com"},
-		{name: "Marc Frojentein", rate: 8.5, email: "sample@email.com"},
-		{name: "Hicaliber", rate: 14, email: "sample@email.com"},
-	}
-}
-func New() ClientList {
-	return ClientList{
+func New(db *sql.DB) ClientList {
+	//Initialize new Client list
+	list := ClientList{
 		cursor: 0,
+		db:     db,
 	}
+
+	//Query Clients form Db
+	//Populate the list
+	rows, err := db.Query("SELECT * FROM client")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		client := Client{}
+		if err := rows.Scan(&client.id, &client.name, &client.email, &client.rate); err != nil {
+			panic(err)
+		}
+		list.list = append(list.list, client)
+	}
+	return list
 }
 
 func (l ClientList) Init() tea.Cmd {
