@@ -12,6 +12,7 @@ type view int
 const (
 	normal view = iota
 	details
+	add
 )
 
 type Client struct {
@@ -39,13 +40,13 @@ func New(db *sql.DB) ClientList {
 	}
 
 	//Query Clients form Db
-	//Populate the list
 	rows, err := db.Query("SELECT * FROM client")
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 
+	//Populate the list
 	for rows.Next() {
 		client := Client{}
 		if err := rows.Scan(&client.id, &client.name, &client.email, &client.rate); err != nil {
@@ -55,13 +56,15 @@ func New(db *sql.DB) ClientList {
 	}
 	return list
 }
-
+func (l *ClientList) addClient() {}
 func (l ClientList) Init() tea.Cmd {
 	return nil
 }
 
 func (l ClientList) View() string {
 	switch l.view {
+	case add:
+		return "add client form"
 	case details:
 		var s string
 		client := l.list[l.cursor]
@@ -107,6 +110,8 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 			}
 		case "enter":
 			l.view = details
+		case "ctrl+n":
+			l.view = add
 		case "esc":
 			l.view = normal
 		}
