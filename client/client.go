@@ -3,8 +3,10 @@ package client
 import (
 	"database/sql"
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
 	"invoice-gen/timelog"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 )
 
 type view int
@@ -27,6 +29,7 @@ type ClientList struct {
 	cursor int
 	view   view
 	db     *sql.DB
+	form   *huh.Form
 }
 
 func (l *ClientList) Db(db *sql.DB) {
@@ -56,7 +59,26 @@ func New(db *sql.DB) ClientList {
 	}
 	return list
 }
-func (l *ClientList) addClient() {}
+func addClient() {
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Client Name").
+				Prompt("?"),
+			huh.NewInput().
+				Title("Client Email").
+				Prompt("?"),
+			huh.NewInput().
+				Title("Client Rate").
+				Prompt("?"),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		panic(err)
+	}
+
+}
 func (l ClientList) Init() tea.Cmd {
 	return nil
 }
@@ -64,7 +86,8 @@ func (l ClientList) Init() tea.Cmd {
 func (l ClientList) View() string {
 	switch l.view {
 	case add:
-		return "add client form"
+		addClient()
+		return ""
 	case details:
 		var s string
 		client := l.list[l.cursor]
