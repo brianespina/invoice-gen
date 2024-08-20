@@ -59,7 +59,7 @@ func New(db *sql.DB) ClientList {
 	}
 	return list
 }
-func addClient() {
+func (l *ClientList) addClient() {
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -73,10 +73,7 @@ func addClient() {
 				Prompt("?"),
 		),
 	)
-
-	if err := form.Run(); err != nil {
-		panic(err)
-	}
+	l.form = form
 
 }
 func (l ClientList) Init() tea.Cmd {
@@ -86,7 +83,8 @@ func (l ClientList) Init() tea.Cmd {
 func (l ClientList) View() string {
 	switch l.view {
 	case add:
-		addClient()
+		l.addClient()
+		l.form.Run()
 		return ""
 	case details:
 		var s string
@@ -139,5 +137,6 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 			l.view = normal
 		}
 	}
+
 	return l, nil
 }
