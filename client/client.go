@@ -40,6 +40,23 @@ func New(db *sql.DB) ClientList {
 	list := ClientList{
 		cursor: 0,
 		db:     db,
+		form: huh.NewForm(
+			huh.NewGroup(
+				huh.NewInput().
+					Title("Client Name").
+					Prompt("?").
+					Key("name"),
+
+				huh.NewInput().
+					Title("Client Email").
+					Prompt("?").
+					Key("email"),
+				huh.NewInput().
+					Title("Client Rate").
+					Prompt("?").
+					Key("rate"),
+			),
+		),
 	}
 
 	//Query Clients form Db
@@ -57,35 +74,15 @@ func New(db *sql.DB) ClientList {
 		}
 		list.list = append(list.list, client)
 	}
+
 	return list
 }
-func (l *ClientList) addClient() {
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title("Client Name").
-				Prompt("?"),
-			huh.NewInput().
-				Title("Client Email").
-				Prompt("?"),
-			huh.NewInput().
-				Title("Client Rate").
-				Prompt("?"),
-		),
-	)
-	l.form = form
-
-}
 func (l ClientList) Init() tea.Cmd {
-	return nil
+	return l.form.Init()
 }
 
 func (l ClientList) View() string {
 	switch l.view {
-	case add:
-		l.addClient()
-		l.form.Run()
-		return ""
 	case details:
 		var s string
 		client := l.list[l.cursor]
@@ -96,6 +93,14 @@ func (l ClientList) View() string {
 		timelog.FilterLogs(&t, l.cursor)
 		s += t.View()
 		return s
+	case add:
+		if l.form.State == huh.StateCompleted {
+			name := l.form.GetString("name")
+			email := l.form.GetString("email")
+			rate := l.form.GetString("rate")
+			return fmt.Sprintf("You selected: %s, %s, %s", name, email, rate)
+		}
+		return l.form.View()
 	case normal:
 		fallthrough
 	default:
@@ -115,8 +120,6 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c":
-			return l, tea.Quit
 		case "j":
 			if l.cursor == len(l.list)-1 {
 				l.cursor = 0
@@ -138,5 +141,10 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 		}
 	}
 
-	return l, nil
+	form, cmd := l.form.Update(msg)
+	if f, ok := form.(*huh.Form); ok {
+		l.form = f
+	}
+
+	return l, cmd
 }
