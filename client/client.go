@@ -2,8 +2,8 @@ package client
 
 import (
 	"database/sql"
-	"fmt"
 
+	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 )
@@ -33,41 +33,45 @@ type ClientList struct {
 func New(db *sql.DB) ClientList {
 	//Initialize new Client list
 	clientListInstance := ClientList{
-		db: db,
-		form: huh.NewForm(
-			huh.NewGroup(
-				huh.NewInput().
-					Title("Client Name").
-					Prompt("?").
-					Key("name"),
-
-				huh.NewInput().
-					Title("Client Email").
-					Prompt("?").
-					Key("email"),
-				huh.NewInput().
-					Title("Client Rate").
-					Prompt("?").
-					Key("rate"),
-			),
-		),
+		db:   db,
 		list: NewList(db),
 	}
 
 	return clientListInstance
 }
-func (l ClientList) Init() tea.Cmd {
-	return l.form.Init()
+func (l *ClientList) resetForm() {
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Client Name").
+				Prompt("?").
+				Key("name"),
+
+			huh.NewInput().
+				Title("Client Email").
+				Prompt("?").
+				Key("email"),
+			huh.NewInput().
+				Title("Client Rate").
+				Prompt("?").
+				Key("rate"),
+		),
+	)
+	l.form = form
 }
 
+func (l ClientList) Init() tea.Cmd {
+	return nil
+}
 func (l ClientList) View() string {
 	switch l.view {
 	case add:
+		l.form.Init()
 		if l.form.State == huh.StateCompleted {
 			name := l.form.GetString("name")
 			email := l.form.GetString("email")
-			rate := l.form.GetString("rate")
-			return fmt.Sprintf("You selected: %s, %s, %s", name, email, rate)
+			//add client here
+			return fmt.Sprintf("Client has been added: \n\n%s\nemail: %s", name, email)
 		}
 		return l.form.View()
 	case normal:
@@ -84,7 +88,9 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 		listModel, _ := l.list.Update(msg)
 		l.list = &listModel
 	case add:
-		l.form.Init()
+		if l.form.State == huh.StateCompleted {
+			l.view = normal
+		}
 		form, cmd := l.form.Update(msg)
 		if f, ok := form.(*huh.Form); ok {
 			l.form = f
@@ -96,6 +102,8 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+n":
+			//reset form here
+			l.resetForm()
 			l.view = add
 		}
 	}
