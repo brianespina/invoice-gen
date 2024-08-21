@@ -3,6 +3,7 @@ package client
 import (
 	"database/sql"
 	"fmt"
+	"invoice-gen/timelog"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
@@ -62,6 +63,16 @@ func (l ClientList) Init() tea.Cmd {
 
 func (l ClientList) View() string {
 	switch l.view {
+	case details:
+		var s string
+		client := l.list[l.cursor]
+		s += fmt.Sprintf("%s\n", client.name)
+		s += fmt.Sprintf("%s\n", client.email)
+		s += fmt.Sprintf("%.1f\n\n", client.rate)
+		t := timelog.InitTimeList()
+		timelog.FilterLogs(&t, l.cursor)
+		s += t.View()
+		return s
 	case add:
 		if l.form.State == huh.StateCompleted {
 			name := l.form.GetString("name")
@@ -73,31 +84,23 @@ func (l ClientList) View() string {
 	case normal:
 		fallthrough
 	default:
-		return l.list.View()
-
+		var s string
+		for i, client := range l.list {
+			cursor := " "
+			if l.cursor == i {
+				cursor = "|"
+			}
+			s += fmt.Sprintf("%s %s\n", cursor, client.name)
+		}
+		return s
 	}
 }
 
 func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 	switch l.view {
 	case normal:
-		listModel, _ := l.list.Update(msg)
-		l.list = &listModel
-	case add:
-		l.form.Init()
-		form, cmd := l.form.Update(msg)
-		if f, ok := form.(*huh.Form); ok {
-			l.form = f
-		}
-		return l, cmd
-	}
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+n":
-			l.view = add
-		}
+		listModel, cmd := l.list.Update(msg)
+		return
 	}
 
 	return l, nil
