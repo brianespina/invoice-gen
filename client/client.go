@@ -60,7 +60,7 @@ func (l *ClientList) resetForm() {
 	l.form = form
 }
 
-func (l ClientList) addClient(name, email, rate string) {
+func (l *ClientList) addClient(name, email, rate string) {
 	_, err := l.db.Exec("INSERT INTO client VALUES(NULL,?,?,?)", name, email, rate)
 	if err != nil {
 		panic(err)
@@ -97,6 +97,8 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 		l.list = &listModel
 	case add:
 		if l.form.State == huh.StateCompleted {
+			//refresh list
+			l.list = NewList(l.db)
 			l.view = normal
 		}
 		form, cmd := l.form.Update(msg)
