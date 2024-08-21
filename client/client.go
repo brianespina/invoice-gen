@@ -60,6 +60,12 @@ func (l *ClientList) resetForm() {
 	l.form = form
 }
 
+func (l ClientList) addClient(name, email, rate string) {
+	_, err := l.db.Exec("INSERT INTO client VALUES(NULL,?,?,?)", name, email, rate)
+	if err != nil {
+		panic(err)
+	}
+}
 func (l ClientList) Init() tea.Cmd {
 	return nil
 }
@@ -70,8 +76,10 @@ func (l ClientList) View() string {
 		if l.form.State == huh.StateCompleted {
 			name := l.form.GetString("name")
 			email := l.form.GetString("email")
+			rate := l.form.GetString("rate")
 			//add client here
-			return fmt.Sprintf("Client has been added: \n\n%s\nemail: %s", name, email)
+			l.addClient(name, email, rate)
+			return fmt.Sprintf("Client has been added: \n\n%s\nemail: %s\nrate: %s", name, email, rate)
 		}
 		return l.form.View()
 	case normal:
