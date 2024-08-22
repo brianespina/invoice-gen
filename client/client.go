@@ -96,6 +96,13 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 		listModel, _ := l.list.Update(msg)
 		l.list = &listModel
 	case add:
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "ctrl+n":
+				l.view = normal
+			}
+		}
 		if l.form.State == huh.StateCompleted {
 			//refresh list
 			l.list = NewList(l.db)
