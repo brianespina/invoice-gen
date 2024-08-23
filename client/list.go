@@ -64,6 +64,9 @@ func (l List) Update(msg tea.Msg) (List, tea.Cmd) {
 			} else {
 				l.cursor--
 			}
+		case "ctrl+d":
+			current := l.list[l.cursor]
+			//delete client here
 		}
 	}
 	return l, nil
