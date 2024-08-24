@@ -83,6 +83,20 @@ func (l List) View() string {
 	}
 }
 func (l List) Update(msg tea.Msg) (List, tea.Cmd) {
+	switch l.view {
+	case timelistView:
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "esc":
+				l.view = clientListView
+			}
+
+		}
+		l.timeList, _ = l.timeList.Update(msg)
+		return l, nil
+	}
+
 	current := l.list[l.cursor]
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
