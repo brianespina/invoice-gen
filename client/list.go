@@ -4,12 +4,20 @@ import (
 	"database/sql"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"invoice-gen/timelog"
+)
+
+const (
+	clientListView view = iota
+	timelistView
 )
 
 type List struct {
-	list   []Client
-	cursor int
-	db     *sql.DB
+	list     []Client
+	cursor   int
+	timeList timelog.TimeList
+	db       *sql.DB
+	view     view
 }
 
 func NewList(db *sql.DB) *List {
@@ -59,17 +67,23 @@ func (l List) Init() tea.Cmd {
 	return nil
 }
 func (l List) View() string {
-	var s string
-	for i, client := range l.list {
-		cursor := " "
-		if l.cursor == i {
-			cursor = "|"
+	switch l.view {
+	case timelistView:
+		return l.timeList.View()
+	default:
+		var s string
+		for i, client := range l.list {
+			cursor := " "
+			if l.cursor == i {
+				cursor = "|"
+			}
+			s += fmt.Sprintf("%s %s\n", cursor, client.name)
 		}
-		s += fmt.Sprintf("%s %s\n", cursor, client.name)
+		return s
 	}
-	return s
 }
 func (l List) Update(msg tea.Msg) (List, tea.Cmd) {
+	current := l.list[l.cursor]
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -86,10 +100,13 @@ func (l List) Update(msg tea.Msg) (List, tea.Cmd) {
 				l.cursor--
 			}
 		case "ctrl+d":
-			current := l.list[l.cursor]
 			//delete client here
 			l.list = l.deleteClient(current.id)
 			l.cursor = 0
+		case "enter":
+			l.timeList = timelog.InitTimeList()
+			timelog.FilterLogs(&l.timeList, current.id)
+			l.view = timelistView
 		}
 	}
 	return l, nil

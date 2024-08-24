@@ -12,7 +12,6 @@ type view int
 
 const (
 	normal view = iota
-	details
 	add
 )
 
