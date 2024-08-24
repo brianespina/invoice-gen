@@ -107,7 +107,10 @@ func (l List) Update(msg tea.Msg) (List, tea.Cmd) {
 			l.timeList = timelog.InitTimeList()
 			timelog.FilterLogs(&l.timeList, current.id)
 			l.view = timelistView
+		case "esc":
+			l.view = clientListView
 		}
+
 	}
 	return l, nil
 }
