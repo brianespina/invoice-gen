@@ -17,15 +17,15 @@ func NewList(db *sql.DB) *List {
 		cursor: 0,
 		db:     db,
 	}
-	newList.list = getClients(db)
+	newList.list = newList.getClients()
 	return newList
 }
 
-func getClients(db *sql.DB) []Client {
+func (l List) getClients() []Client {
 	var list []Client
 
 	//Query Clients form Db
-	rows, err := db.Query("SELECT * FROM client")
+	rows, err := l.db.Query("SELECT * FROM client")
 	if err != nil {
 		panic(err)
 	}
@@ -40,6 +40,19 @@ func getClients(db *sql.DB) []Client {
 		list = append(list, client)
 	}
 	return list
+}
+func (l List) deleteClient(id int) []Client {
+	stmt, err := l.db.Prepare("DELETE FROM client WHERE client_id = ?")
+	if err != nil {
+		panic(err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		panic(err)
+	}
+	return l.getClients()
 }
 
 func (l List) Init() tea.Cmd {
@@ -75,7 +88,8 @@ func (l List) Update(msg tea.Msg) (List, tea.Cmd) {
 		case "ctrl+d":
 			current := l.list[l.cursor]
 			//delete client here
-			l.list = deleteClient(l.db)
+			l.list = l.deleteClient(current.id)
+			l.cursor = 0
 		}
 	}
 	return l, nil
