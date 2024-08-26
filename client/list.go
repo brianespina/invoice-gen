@@ -118,7 +118,7 @@ func (l List) Update(msg tea.Msg) (List, tea.Cmd) {
 			l.list = l.deleteClient(current.id)
 			l.cursor = 0
 		case "enter":
-			l.timeList = timelog.InitTimeList()
+			l.timeList = timelog.InitTimeList(l.db)
 			timelog.FilterLogs(&l.timeList, current.id)
 			l.view = timelistView
 		case "esc":

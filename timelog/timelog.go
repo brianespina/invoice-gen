@@ -1,32 +1,52 @@
 package timelog
 
 import (
+	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
-	"time"
 )
 
 type Timelog struct {
-	Name   string
-	Date   time.Time
-	Log    float32
-	Client int
+	Name        string
+	Description string
+	Date        time.Time
+	Log         float64
+	Client      int
 }
 
 type TimeList struct {
 	list  []Timelog
 	table table.Model
+	db    *sql.DB
 }
 
-func InitTimeList() TimeList {
+func InitTimeList(db *sql.DB) TimeList {
+
 	list := TimeList{
-		list: []Timelog{
-			{Name: "MNY Site Build", Log: 16.5, Client: 1},
-			{Name: "Nova Website Updates", Log: .5, Client: 1},
-			{Name: "Product Page Updates", Log: 4, Client: 2},
-		},
+		list: []Timelog{},
+		db:   db,
 	}
+	res, err := db.Query("SELECT * FROM timelog")
+	if err != nil {
+		panic(err)
+	}
+	defer res.Close()
+
+	for res.Next() {
+		var name, description, date string
+		var log float64
+		var client, id int
+
+		if err := res.Scan(&id, &name, &description, &log, &date, &client); err != nil {
+			panic(err)
+		}
+		timeRow := Timelog{Name: name, Description: description, Log: log, Client: client}
+		list.list = append(list.list, timeRow)
+	}
+
 	return list
 
 }
@@ -50,6 +70,7 @@ func (t *TimeList) InitTable() {
 		{Title: "Client", Width: 10},
 	}
 	rows := []table.Row{}
+	//get logs here
 
 	for _, log := range t.list {
 		logS := []string{
@@ -70,22 +91,6 @@ func (t TimeList) View() string {
 	return t.table.View()
 }
 func (t TimeList) Update(msg tea.Msg) (TimeList, tea.Cmd) {
-	var cmd tea.Cmd
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "esc":
-			if t.table.Focused() {
-				t.table.Blur()
-			} else {
-				t.table.Focus()
-			}
-		case "enter":
-			return t, tea.Batch(
-				tea.Printf("Let's go to %s!", t.table.SelectedRow()[1]),
-			)
-		}
-	}
-	t.table, cmd = t.table.Update(msg)
-	return t, cmd
+	t.table, _ = t.table.Update(msg)
+	return t, nil
 }
