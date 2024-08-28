@@ -35,7 +35,7 @@ func New(db *sql.DB) ClientList {
 		db:   db,
 		list: NewList(db),
 	}
-
+	clientListInstance.resetForm()
 	return clientListInstance
 }
 func (l *ClientList) resetForm() {
