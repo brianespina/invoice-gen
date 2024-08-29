@@ -91,9 +91,6 @@ func (l ClientList) View() string {
 
 func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 	switch l.view {
-	case normal:
-		listModel, _ := l.list.Update(msg)
-		l.list = &listModel
 	case add:
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
@@ -112,17 +109,22 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 			l.form = f
 		}
 		return l, cmd
-	}
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+n":
-			//reset form here
-			l.resetForm()
-			l.view = add
+	case normal:
+		fallthrough
+	default:
+		listModel, _ := l.list.Update(msg)
+		l.list = &listModel
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "ctrl+n":
+				//reset form here
+				l.resetForm()
+				l.view = add
+			}
 		}
+
+		return l, nil
 	}
 
-	return l, nil
 }

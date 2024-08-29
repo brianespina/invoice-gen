@@ -7,6 +7,14 @@ import (
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
+)
+
+type view int
+
+const (
+	normal view = iota
+	add
 )
 
 type Timelog struct {
@@ -21,6 +29,8 @@ type TimeList struct {
 	list  []Timelog
 	table table.Model
 	db    *sql.DB
+	form  *huh.Form
+	view  view
 }
 
 func InitTimeList(db *sql.DB) TimeList {
@@ -29,6 +39,8 @@ func InitTimeList(db *sql.DB) TimeList {
 		list: []Timelog{},
 		db:   db,
 	}
+
+	list.resetForm()
 	res, err := db.Query("SELECT * FROM timelog")
 	if err != nil {
 		panic(err)
@@ -49,6 +61,30 @@ func InitTimeList(db *sql.DB) TimeList {
 
 	return list
 
+}
+func (t *TimeList) resetForm() {
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Name").
+				Prompt("?").
+				Key("name"),
+
+			huh.NewInput().
+				Title("Description").
+				Prompt("?").
+				Key("description"),
+			huh.NewInput().
+				Title("Log").
+				Prompt("?").
+				Key("log"),
+			huh.NewInput().
+				Title("Client").
+				Prompt("?").
+				Key("client"),
+		),
+	)
+	t.form = form
 }
 func FilterLogs(list *TimeList, clientId int) {
 	var filtered []Timelog
@@ -88,9 +124,51 @@ func (t *TimeList) InitTable() {
 	t.table = table
 }
 func (t TimeList) View() string {
-	return t.table.View()
+	switch t.view {
+	case add:
+		t.form.Init()
+		return t.form.View()
+	case normal:
+		fallthrough
+	default:
+		return t.table.View()
+	}
 }
 func (t TimeList) Update(msg tea.Msg) (TimeList, tea.Cmd) {
-	t.table, _ = t.table.Update(msg)
+	switch t.view {
+	case add:
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "ctrl+n":
+				t.view = normal
+			}
+		}
+		if t.form.State == huh.StateCompleted {
+			//refresh list
+			t.view = normal
+		}
+
+		form, cmd := t.form.Update(msg)
+		if f, ok := form.(*huh.Form); ok {
+			t.form = f
+		}
+		return t, cmd
+	case normal:
+		fallthrough
+	default:
+		t.table, _ = t.table.Update(msg)
+	}
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+n":
+			//reset form here
+			t.resetForm()
+			t.view = add
+		}
+	}
+
 	return t, nil
 }
