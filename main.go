@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	_ "github.com/mattn/go-sqlite3"
 	"invoice-gen/client"
+	"invoice-gen/timelog"
 	"os"
 )
 
@@ -18,8 +19,9 @@ const (
 )
 
 type model struct {
-	list client.ClientList
-	mode mode
+	list     client.ClientList
+	timeList timelog.TimeList
+	mode     mode
 }
 
 func (m model) Init() tea.Cmd {
@@ -44,6 +46,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list = cl
 		return m, cmd
 	}
+	if m.mode == timeSheetView {
+		cl, cmd := m.timeList.Update(msg)
+		m.timeList = cl
+		return m, cmd
+	}
 	return m, nil
 }
 func (m model) View() string {
@@ -51,7 +58,7 @@ func (m model) View() string {
 	case clientView:
 		return m.list.View()
 	case timeSheetView:
-		return "Timesheet View"
+		return m.timeList.View()
 	case clientAddView:
 		return "Add Clients"
 	}
@@ -59,7 +66,8 @@ func (m model) View() string {
 }
 func New(db *sql.DB) *model {
 	m := &model{
-		list: client.New(db),
+		list:     client.New(db),
+		timeList: timelog.InitTimeList(db),
 	}
 	return m
 }
