@@ -58,6 +58,7 @@ func (m model) View() string {
 	case clientView:
 		return m.list.View()
 	case timeSheetView:
+		m.timeList.InitTable()
 		return m.timeList.View()
 	case clientAddView:
 		return "Add Clients"
@@ -69,6 +70,7 @@ func New(db *sql.DB) *model {
 		list:     client.New(db),
 		timeList: timelog.InitTimeList(db),
 	}
+
 	return m
 }
 func main() {
