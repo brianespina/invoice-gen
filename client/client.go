@@ -84,7 +84,8 @@ func (l ClientList) View() string {
 	case normal:
 		fallthrough
 	default:
-		return l.list.View()
+		string := l.list.View()
+		return string
 
 	}
 }

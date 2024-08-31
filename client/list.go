@@ -69,7 +69,7 @@ func (l List) Init() tea.Cmd {
 func (l List) View() string {
 	switch l.view {
 	case timelistView:
-		return l.timeList.View()
+		return ""
 	default:
 		var s string
 		for i, client := range l.list {
@@ -78,6 +78,7 @@ func (l List) View() string {
 				cursor = "|"
 			}
 			s += fmt.Sprintf("%s %s\n", cursor, client.name)
+			s += l.timeList.View()
 		}
 		return s
 	}
