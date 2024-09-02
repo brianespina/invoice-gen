@@ -127,6 +127,16 @@ func (t TimeList) View() string {
 	switch t.view {
 	case add:
 		t.form.Init()
+
+		if t.form.State == huh.StateCompleted {
+			name := t.form.GetString("name")
+			description := t.form.GetString("description")
+			log := t.form.GetString("log")
+			client := t.form.GetString("client")
+
+			//add client here
+			return fmt.Sprintf("%s, %s, %s, %s", name, description, log, client)
+		}
 		return t.form.View()
 	case normal:
 		fallthrough
