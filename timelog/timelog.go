@@ -96,6 +96,12 @@ func FilterLogs(list *TimeList, clientId int) {
 	list.list = filtered
 	list.InitTable()
 }
+func (t TimeList) addTime(name, description, log, client string) {
+	_, err := t.db.Exec("INSERT INTO timelog (name, description, log, client)", name, description, log, client)
+	if err != nil {
+		panic(err)
+	}
+}
 func (t TimeList) Init() tea.Cmd {
 	return nil
 }
@@ -134,7 +140,8 @@ func (t TimeList) View() string {
 			log := t.form.GetString("log")
 			client := t.form.GetString("client")
 
-			//add client here
+			//add clienn here
+			t.addTime(name, description, log, client)
 			return fmt.Sprintf("%s, %s, %s, %s", name, description, log, client)
 		}
 		return t.form.View()
