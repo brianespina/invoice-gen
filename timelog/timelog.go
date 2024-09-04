@@ -97,7 +97,7 @@ func FilterLogs(list *TimeList, clientId int) {
 	list.InitTable()
 }
 func (t TimeList) addTime(name, description, log, client string) {
-	_, err := t.db.Exec("INSERT INTO timelog (name, description, log, client)", name, description, log, client)
+	_, err := t.db.Exec("INSERT INTO timelog (name, description, log, client) VALUES (?,?,?,?)", name, description, log, client)
 	if err != nil {
 		panic(err)
 	}
@@ -159,6 +159,7 @@ func (t TimeList) Update(msg tea.Msg) (TimeList, tea.Cmd) {
 			switch msg.String() {
 			case "ctrl+n":
 				t.view = normal
+
 			}
 		}
 		if t.form.State == huh.StateCompleted {
