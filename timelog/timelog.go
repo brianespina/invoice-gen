@@ -130,63 +130,10 @@ func (t *TimeList) InitTable() {
 	t.table = table
 }
 func (t TimeList) View() string {
-	switch t.view {
-	case add:
-		t.form.Init()
-
-		if t.form.State == huh.StateCompleted {
-			name := t.form.GetString("name")
-			description := t.form.GetString("description")
-			log := t.form.GetString("log")
-			client := t.form.GetString("client")
-
-			//add clienn here
-			t.addTime(name, description, log, client)
-			return fmt.Sprintf("%s, %s, %s, %s", name, description, log, client)
-		}
-		return t.form.View()
-	case normal:
-		fallthrough
-	default:
-		return t.table.View()
-	}
+	return t.table.View()
 }
 func (t TimeList) Update(msg tea.Msg) (TimeList, tea.Cmd) {
-	switch t.view {
-	case add:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			switch msg.String() {
-			case "ctrl+n":
-				t.view = normal
-
-			}
-		}
-		if t.form.State == huh.StateCompleted {
-			//refresh list
-			t.view = normal
-		}
-
-		form, cmd := t.form.Update(msg)
-		if f, ok := form.(*huh.Form); ok {
-			t.form = f
-		}
-		return t, cmd
-	case normal:
-		fallthrough
-	default:
-		t.table, _ = t.table.Update(msg)
-	}
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+n":
-			//reset form here
-			t.resetForm()
-			t.view = add
-		}
-	}
-
+	tableModel, _ := t.table.Update(msg)
+	t.table = tableModel
 	return t, nil
 }

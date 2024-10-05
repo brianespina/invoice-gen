@@ -3,7 +3,6 @@ package client
 import (
 	"database/sql"
 
-	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 )
@@ -57,6 +56,7 @@ func (l *ClientList) resetForm() {
 		),
 	)
 	l.form = form
+	l.form.Init()
 }
 
 func (l *ClientList) addClient(name, email, rate string) {
@@ -71,15 +71,6 @@ func (l ClientList) Init() tea.Cmd {
 func (l ClientList) View() string {
 	switch l.view {
 	case add:
-		l.form.Init()
-		if l.form.State == huh.StateCompleted {
-			name := l.form.GetString("name")
-			email := l.form.GetString("email")
-			rate := l.form.GetString("rate")
-			//add client here
-			l.addClient(name, email, rate)
-			return fmt.Sprintf("Client has been added: \n\n%s\nemail: %s\nrate: %s", name, email, rate)
-		}
 		return l.form.View()
 	case normal:
 		fallthrough
@@ -93,23 +84,16 @@ func (l ClientList) View() string {
 func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 	switch l.view {
 	case add:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			switch msg.String() {
-			case "ctrl+n":
-				l.view = normal
-			}
-		}
-		if l.form.State == huh.StateCompleted {
-			//refresh list
-			l.list = NewList(l.db)
-			l.view = normal
-		}
 		form, cmd := l.form.Update(msg)
 		if f, ok := form.(*huh.Form); ok {
 			l.form = f
 		}
+		if l.form.State == huh.StateCompleted {
+			//logic for adding client
+			l.view = normal
+		}
 		return l, cmd
+
 	case normal:
 		fallthrough
 	default:

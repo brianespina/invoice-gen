@@ -33,36 +33,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c":
 			return m, tea.Quit
-		case "ctrl+t":
-			m.mode = timeSheetView
-		case "ctrl+a":
-			m.mode = clientAddView
-		case "ctrl+v":
-			m.mode = clientView
 		}
 	}
-	if m.mode == clientView {
-		cl, cmd := m.list.Update(msg)
-		m.list = cl
-		return m, cmd
-	}
-	if m.mode == timeSheetView {
-		cl, cmd := m.timeList.Update(msg)
-		m.timeList = cl
-		return m, cmd
-	}
-	return m, nil
+	listModel, cmd := m.list.Update(msg)
+	m.list = listModel
+	return m, cmd
 }
 func (m model) View() string {
-	switch m.mode {
-	case clientView:
-		return m.list.View()
-	case timeSheetView:
-		m.timeList.InitTable()
-		return m.timeList.View()
-	case clientAddView:
-		return "Add Clients"
-	}
 	return m.list.View()
 }
 func New(db *sql.DB) *model {
