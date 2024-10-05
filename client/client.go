@@ -17,15 +17,16 @@ const (
 type Client struct {
 	name  string
 	email string
-	rate  float32
+	rate  string
 	id    int
 }
 
 type ClientList struct {
-	list *List
-	view view
-	db   *sql.DB
-	form *huh.Form
+	list      *List
+	view      view
+	db        *sql.DB
+	form      *huh.Form
+	newClient *Client
 }
 
 func New(db *sql.DB) ClientList {
@@ -34,24 +35,26 @@ func New(db *sql.DB) ClientList {
 		db:   db,
 		list: NewList(db),
 	}
-	clientListInstance.resetForm()
 	return clientListInstance
 }
-func (l *ClientList) resetForm() {
+func (l *ClientList) initForm(client *Client) {
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Client Name").
 				Prompt("?").
+				Value(&client.name).
 				Key("name"),
 
 			huh.NewInput().
 				Title("Client Email").
 				Prompt("?").
+				Value(&client.email).
 				Key("email"),
 			huh.NewInput().
 				Title("Client Rate").
 				Prompt("?").
+				Value(&client.rate).
 				Key("rate"),
 		),
 	)
@@ -59,8 +62,8 @@ func (l *ClientList) resetForm() {
 	l.form.Init()
 }
 
-func (l *ClientList) addClient(name, email, rate string) {
-	_, err := l.db.Exec("INSERT INTO client VALUES(NULL,?,?,?)", name, email, rate)
+func (l *ClientList) addClient() {
+	_, err := l.db.Exec("INSERT INTO client VALUES(NULL,?,?,?)", l.newClient.name, l.newClient.email, l.newClient.rate)
 	if err != nil {
 		panic(err)
 	}
@@ -87,9 +90,12 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 		form, cmd := l.form.Update(msg)
 		if f, ok := form.(*huh.Form); ok {
 			l.form = f
+
 		}
 		if l.form.State == huh.StateCompleted {
 			//logic for adding client
+			l.addClient()
+			l.list = NewList(l.db)
 			l.view = normal
 		}
 		return l, cmd
@@ -104,7 +110,9 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 			switch msg.String() {
 			case "ctrl+n":
 				//reset form here
-				l.resetForm()
+				client := &Client{}
+				l.initForm(client)
+				l.newClient = client
 				l.view = add
 			}
 		}
