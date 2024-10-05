@@ -37,7 +37,11 @@ func New(db *sql.DB) ClientList {
 	}
 	return clientListInstance
 }
-func (l *ClientList) initForm(client *Client) {
+func (l *ClientList) newForm() {
+
+	client := &Client{}
+	l.newClient = client
+
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -110,9 +114,7 @@ func (l ClientList) Update(msg tea.Msg) (ClientList, tea.Cmd) {
 			switch msg.String() {
 			case "ctrl+n":
 				//reset form here
-				client := &Client{}
-				l.initForm(client)
-				l.newClient = client
+				l.newForm()
 				l.view = add
 			}
 		}
